@@ -7,41 +7,48 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --bg: #050505; --card: #121212; --accent: #ff0000; }
-        body { background-color: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 30px; }
+        body { background-color: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 30px; overflow-x: hidden; }
         
-        .navbar { background: #000; border-bottom: 1px solid #222; padding: 15px 25px; position: sticky; top: 0; z-index: 1000; text-align: center; }
-        .navbar-brand { font-weight: 800; color: var(--accent) !important; letter-spacing: 2px; text-transform: uppercase; font-size: 24px; }
+        .navbar { background: #000; border-bottom: 1px solid #222; padding: 15px; text-align: center; }
+        .navbar-brand { font-weight: 800; color: var(--accent) !important; letter-spacing: 2px; text-transform: uppercase; font-size: 22px; }
 
-        .search-container { max-width: 800px; margin: 20px auto 10px auto; padding: 0 20px; }
-        .form-control { background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; padding: 12px; }
+        .search-container { max-width: 800px; margin: 15px auto 10px auto; padding: 0 15px; }
+        .form-control { background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; padding: 10px; font-size: 14px; }
         .form-control:focus { background: #222; border-color: var(--accent); color: white; box-shadow: none; }
 
-        /* Botones de Categoría uno al lado del otro */
-        .filter-container { display: flex; justify-content: center; gap: 8px; padding: 0 10px 20px 10px; flex-wrap: nowrap; overflow-x: auto; }
-        .btn-filter { 
-            background: #1a1a1a; border: 1px solid #333; color: #aaa; 
-            font-size: 10px; font-weight: 800; padding: 10px 12px; border-radius: 5px; 
-            text-transform: uppercase; transition: 0.3s; cursor: pointer; white-space: nowrap;
-            flex: 1; text-align: center; max-width: 150px;
-        }
-        .btn-filter.active, .btn-filter:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .filter-container { display: flex; justify-content: center; gap: 5px; padding: 0 10px 15px 10px; overflow-x: auto; scrollbar-width: none; }
+        .filter-container::-webkit-scrollbar { display: none; }
 
-        .channel-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
-            gap: 12px; padding: 0 20px; max-width: 1400px; margin: 0 auto;
+        .btn-filter { 
+            background: #1a1a1a; border: 1px solid #333; color: #888; 
+            font-size: 9px; font-weight: 800; padding: 8px 10px; border-radius: 5px; 
+            text-transform: uppercase; cursor: pointer; white-space: nowrap;
+            min-width: 80px; text-align: center; flex-shrink: 0;
         }
+        .btn-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px; padding: 0 15px; max-width: 1200px; margin: 0 auto; }
 
         .channel-card { 
-            background: var(--card); border-radius: 12px; padding: 15px; 
+            background: var(--card); border-radius: 10px; padding: 12px; 
             text-align: center; cursor: pointer; transition: 0.2s;
-            border: 1px solid #222; height: 140px; display: flex; 
+            border: 1px solid #222; height: 130px; display: flex; 
             flex-direction: column; align-items: center; justify-content: center;
         }
-        .channel-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .channel-card:hover { border-color: var(--accent); transform: translateY(-3px); }
         
-        .img-box { height: 55px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; width: 100%; }
-        .channel-card img { max-height: 100%; max-width: 90%; object-fit: contain; }
-        .channel-card span { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #eee; line-height: 1.2; }
+        /* Contenedor de Imagen o Letra */
+        .img-box { height: 50px; width: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; overflow: hidden; }
+        .channel-card img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        
+        /* Estilo para la Inicial cuando falla la imagen */
+        .fallback-avatar { 
+            width: 50px; height: 50px; background: #1a1a1a; color: var(--accent); 
+            border: 2px solid #333; border-radius: 50%; display: flex; 
+            align-items: center; justify-content: center; font-weight: 800; font-size: 22px; 
+        }
+
+        .channel-card span { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #ccc; display: block; overflow: hidden; text-overflow: ellipsis; width: 100%; }
     </style>
 </head>
 <body>
@@ -61,7 +68,7 @@
         <div class="btn-filter" onclick="filterCat('VARIEDADES', this)">VARIEDADES</div>
     </div>
 
-    <div class="channel-grid" id="mainGrid"></div>
+    <div id="mainGrid" class="channel-grid"></div>
 
     <script>
         const manualChannels = [
@@ -114,7 +121,7 @@
             { name: "STAR CHANNEL", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278549.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Star_Channel_logo.svg" },
             { name: "TN (TODO NOTICIAS)", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278775.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/0/03/Logo_de_Todo_Noticias.png" },
             { name: "TNT SERIES", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278543.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5f/TNT_Series_logo.svg" },
-            { name: "UNIVERSAL", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278550.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Universal_TV_logo.svg" },
+            { name: "UNIVERSAL TV", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278550.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Universal_TV_logo.svg" },
             { name: "VENUS MEDIA", cat: "VARIEDADES", url: "https://tigocloud.desdeparaguay.net/venusmedia/venusmedia/playlist.m3u8", logo: "https://venus.com.py/wp-content/uploads/2017/12/logo-venus.png" },
             { name: "WARNER TV", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278541.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/1/17/Warner_TV_logo.svg" }
         ];
@@ -131,7 +138,7 @@
 
                 for (let i = 0; i < lines.length; i++) {
                     if (lines[i].includes('#EXTINF:')) {
-                        const name = lines[i].split(',')[1]?.trim() || "Canal Extra";
+                        const name = lines[i].split(',')[1]?.trim() || "Canal";
                         const url = lines[i+1]?.trim();
                         const logoMatch = lines[i].match(/tvg-logo="([^"]+)"/);
                         const logo = logoMatch ? logoMatch[1] : "";
@@ -154,13 +161,21 @@
             render(document.getElementById('searchInput').value);
         }
 
+        // FUNCIÓN CLAVE: Crea un círculo con la inicial si falla el logo
+        function handleImgError(img, name) {
+            img.onerror = null; 
+            const initial = name.charAt(0).toUpperCase();
+            const parent = img.parentElement;
+            parent.innerHTML = `<div class="fallback-avatar">${initial}</div>`;
+        }
+
         function render(search = "") {
             const grid = document.getElementById('mainGrid');
             grid.innerHTML = "";
             
             let filtered = allChannels.filter(ch => {
                 const matchesSearch = ch.name.toLowerCase().includes(search.toLowerCase());
-                const matchesCat = (currentFilter === "TODOS") || (ch.cat === currentFilter) || (currentFilter === "API" && ch.cat === "API");
+                const matchesCat = (currentFilter === "TODOS") || (ch.cat === currentFilter);
                 return matchesSearch && matchesCat;
             });
 
@@ -168,7 +183,9 @@
                 const card = document.createElement('div');
                 card.className = "channel-card";
                 card.innerHTML = `
-                    <div class="img-box"><img src="${ch.logo}" referrerpolicy="no-referrer" onerror="this.src='https://via.placeholder.com/80/222/fff?text=TV'"></div>
+                    <div class="img-box">
+                        <img src="${ch.logo}" referrerpolicy="no-referrer" onerror="handleImgError(this, '${ch.name}')">
+                    </div>
                     <span>${ch.name}</span>
                 `;
                 card.onclick = () => window.location.href = ch.url;
