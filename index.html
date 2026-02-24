@@ -1,34 +1,139 @@
-<!doctype html>
-<html lang="en">
- <head>
-  <meta charset="utf-8">
-  <link href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/699d293af574bcb1151261c4/f0d640693_logo.png" rel="icon" type="image/svg+xml">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <link href="https://magma-tv-live.base44.app/manifest.json" rel="manifest">
-  <title>
-   Magma TV
-  </title>
-  <script crossorigin="" src="/assets/index-CQBDJt0V.js" type="module">
-  </script>
-  <link crossorigin="" href="/assets/index-BXws5giK.css" rel="stylesheet">
-  <meta content="Magma TV" property="og:title">
-  <meta content="Accede a una amplia selección de canales de televisión en vivo desde una interfaz elegante y fácil de usar, con logos y nombres de canales para una experiencia de visualización superior." property="og:description">
-  <meta content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/699d293af574bcb1151261c4/f0d640693_logo.png?width=1200&amp;height=630&amp;resize=contain" property="og:image">
-  <meta content="https://magma-tv-live.base44.app" property="og:url">
-  <meta content="website" property="og:type">
-  <meta content="Magma TV" property="og:site_name">
-  <meta content="summary_large_image" name="twitter:card">
-  <meta content="Magma TV" name="twitter:title">
-  <meta content="Accede a una amplia selección de canales de televisión en vivo desde una interfaz elegante y fácil de usar, con logos y nombres de canales para una experiencia de visualización superior." name="twitter:description">
-  <meta content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/699d293af574bcb1151261c4/f0d640693_logo.png?width=1200&amp;height=630&amp;resize=contain" name="twitter:image">
-  <meta content="https://magma-tv-live.base44.app" name="twitter:url">
-  <meta content="Accede a una amplia selección de canales de televisión en vivo desde una interfaz elegante y fácil de usar, con logos y nombres de canales para una experiencia de visualización superior." name="description">
-  <meta content="yes" name="mobile-web-app-capable">
-  <meta content="black" name="apple-mobile-web-app-status-bar-style">
-  <meta content="Magma TV" name="apple-mobile-web-app-title">
-  <link href="https://magma-tv-live.base44.app" rel="canonical">
-  </head>
- <body>
-  <div id="root"></div>
- </body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magma TV - 47 Canales + API</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --bg: #050505; --card: #121212; --accent: #ff0000; }
+        body { background-color: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 30px; }
+        .navbar { background: #000; border-bottom: 1px solid #222; padding: 15px 25px; position: sticky; top: 0; z-index: 1000; }
+        .navbar-brand { font-weight: 800; color: var(--accent) !important; letter-spacing: 2px; }
+        .search-container { max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        .form-control { background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; padding: 12px; }
+        .form-control:focus { background: #222; border-color: var(--accent); color: white; box-shadow: none; }
+        .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .channel-card { background: var(--card); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid #222; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .channel-card:hover { transform: scale(1.03); border-color: var(--accent); background: #1a1a1a; }
+        .img-box { height: 65px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; width: 100%; }
+        .channel-card img { max-height: 100%; max-width: 95%; object-fit: contain; }
+        .channel-card span { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #eee; line-height: 1.2; display: block; }
+        .loading-text { text-align: center; color: var(--accent); padding: 50px; width: 100%; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <span class="navbar-brand">MAGMA TV</span>
+    </nav>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="form-control" placeholder="🔍 Buscar entre todos los canales...">
+    </div>
+
+    <div class="channel-grid" id="mainGrid">
+        <div class="loading-text">Cargando canales...</div>
+    </div>
+
+    <script>
+        const manualChannels = [
+            // NACIONALES PY
+            { name: "SNT", url: "https://d2qsan2ut81n2k.cloudfront.net/live/2e1f1b6a-9d03-4194-8559-2eabe61a1555/ts:abr.m3u8", logo: "https://tvinsur.com/wp-content/uploads/2023/12/SNT-Paraguay-en-vivo-Online.webp" },
+            { name: "C9N", url: "https://d2qsan2ut81n2k.cloudfront.net/live/48f53430-9014-4459-a048-6169dac14140/ts:abr.m3u8", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg6lnz2CDRLLnpQuDEIbbdewTqtDKk9hzCf25mF-4aIqWTS1JksMcSA-C5j3LRkA1_GYXYNHgSGpxno4C62tgD57UmYQaWWdswOgu9qIMQjFBWwUjvsfIFgSb74f4JxOtTBqIFqFKvFtC-9/s1042/C9N+en+vivo.jpg" },
+            { name: "TELEFUTURO", url: "https://www.desdepylabs.com/External/tvaccion/telefuturo", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e0/TelefuturoLogo2022.png" },
+            { name: "GEN", url: "https://gentv.desdepylabs.com/External/tvaccion/gentv", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjV3EkyMzkDOEzag41tRjz59O3pC0Nar7SabfXNxeXLRT_2OrtH8znisKfmH_aGwtfQKd-HdK_F8o6ZuDMQIC32KDwvI1xLg_ruUElRzQn5_-3rtKbjPgZJCYnurz8_22yWcKmkGctfQCCn/s513/GEN+en+vivo.jpg" },
+            { name: "TRECE PY", url: "https://geo.dailymotion.com/player/x1at3a.html?video=k4nLYiNrBX8W5jDbSlM", logo: "https://tvinsur.com/wp-content/uploads/2023/12/Canal-Trece-Paraguay-en-vivo-Online.webp" },
+            { name: "ABC TV", url: "https://cdn.jwplayer.com/live/broadcast/aide2636.mpd", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjkUPqtzL9tm0weAroMA3d690z-aGPedrLlNGDDVclqwQ2lpiOua-15lhunFQ9ykbCC0KAnf2mYH6Ogp9MoWoNNYGlqClbegTamL3Y30Xq7UR5-z5xBwybm6lm5QCuFW7OQGwwfI7dXHBNp/s900/ABC+TV+en+vivo.jpg" },
+            { name: "UNICANAL", url: "https://geo.dailymotion.com/player/x1apn6.html?video=k1mHLKycOlKgo3Db5GI", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgfW3J9GRYfLNJmRY8xba_veN14bEXrBsX7FN8Yu1VAT-G1mW8c4KjesXoQe540738X4jlk07z7W3MeDw2TjvEjQrpGYrPX-wLmyU0Ogbwc0X1BXRBTd_4Q5PfMHC9UjVXsEvIWCpUgMMZo/s440/Unicanal+en+vivo.jpg" },
+            { name: "LA TELE", url: "https://www.desdepylabs.com/External/tvaccion/latele", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi64FmGWdI8ttE3TUfDlvlnLZlVRlKlfb-tUTO8Idqn4fLEqY_t_Vy3MTFZhWJdI6ENBysxzRYlZeXoANHoZpMe1Q-G8LIYsivIh9PupdN61W6U-weSmPmMM2Y2a36P5sNPm8vnCSgdPLnL/s250/La+Tele+en+vivo.jpg" },
+            { name: "NPY", url: "https://www.desdepylabs.com/External/tvaccion/npy", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHqF5ttfQ-As7BtoTYABhGWWVGnZrYPz5_L5Ab-KJKkosd-os3v6qLE-5mCaC9pEJRMc7ZfzW_j0BcA45n2KGWH5D1ZinKpEPkrAIs1zrvwSJYzfmo0UihZsq0LAs0aUd3sMSGxNqoyWco/s1366/NPY+en+vivo.png" },
+            { name: "PARAGUAY TV", url: "https://stream.paraguaytv.gov.py/memfs/bbe36fed-9b49-4d1d-adaa-4bd6d1b2e386_output_0.m3u8", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEQXi245YVRoKkW0BsRYVYHhaYq81bW4Qo4U5MT5sG9LxjZH3HOdb-e32Rnfq4Y6McRYnHGDVPPQ9M0_WzzGk2eWSpFCh3p3Lt_tHOqJbeyF85b61x_bxQK0KfGL_nOJPhbTgCoDKJkTmnJ/w700-h400-p-k-no-nu/Paraguay+TV+en+vivo.png" },
+            { name: "RCC PY", url: "https://rcc.desdeparaguay.net/rcc/rcc/playlist.m3u8", logo: "https://rcc.com.py/wp-content/uploads/2018/06/logo-rcc.png" },
+            { name: "TV CAMARA", url: "http://190.128.213.146:1935/live/livestream/playlist.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Tv_Camara_Paraguay_logo.png" },
+            
+            // DEPORTES
+            { name: "TIGO SPORTS", url: "https://futbolparaguayotv.github.io/futbolparaguayotv/3ventos.html", logo: "https://discovery-content-py.tigocloud.net/uploads/Frame_49_84a38f7e5e.png" },
+            { name: "TIGO SPORTS +", url: "https://futbolparaguayotv.github.io/futbolparaguayotv/3ventos2.html", logo: "https://discovery-content-py.tigocloud.net/uploads/Frame_49_84a38f7e5e.png" },
+            { name: "TIGO SPORTS 3", url: "https://futbolparaguayotv.github.io/futbolparaguayotv/3ventos3.html", logo: "https://discovery-content-py.tigocloud.net/uploads/Frame_49_84a38f7e5e.png" },
+            { name: "ESPN", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278765.m3u8", logo: "https://logodownload.org/wp-content/uploads/2017/04/espn-logo-1.png" },
+            { name: "ESPN 2", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278766.m3u8", logo: "https://logodownload.org/wp-content/uploads/2017/04/espn-logo-1.png" },
+            { name: "ESPN 3", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278767.m3u8", logo: "https://logodownload.org/wp-content/uploads/2017/04/espn-logo-1.png" },
+            { name: "ESPN 4", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278768.m3u8", logo: "https://logodownload.org/wp-content/uploads/2017/04/espn-logo-1.png" },
+            { name: "ESPN PREMIUM", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/283887.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Espn_premium.png" },
+            { name: "FOX SPORTS 1", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278766.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Fox_Sports_logo.svg/2560px-Fox_Sports_logo.svg.png" },
+            { name: "FOX SPORTS 2", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278767.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Fox_Sports_logo.svg/2560px-Fox_Sports_logo.svg.png" },
+            { name: "FOX SPORTS 3", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278768.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Fox_Sports_logo.svg/2560px-Fox_Sports_logo.svg.png" },
+            { name: "WIN SPORTS", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278769.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Win_Sports_Logo.png" },
+            { name: "TYC SPORTS", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278770.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/e/ee/TyC_Sports_Logo.png" },
+            { name: "DSports", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278771.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/e/ef/DSports_logo.png" },
+            
+            // VARIEDADES / CINE
+            { name: "TN (TODO NOTICIAS)", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278775.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/0/03/Logo_de_Todo_Noticias.png" },
+            { name: "DISCOVERY KIDS", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278536.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/2/23/Discovery_Kids_Logo.png" },
+            { name: "CARTOON NETWORK", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278537.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/8/80/Cartoon_Network_2010_logo.svg" },
+            { name: "VENUS MEDIA", url: "https://tigocloud.desdeparaguay.net/venusmedia/venusmedia/playlist.m3u8", logo: "https://venus.com.py/wp-content/uploads/2017/12/logo-venus.png" },
+            { name: "HEI TV", url: "https://gentv.desdeparaguay.net/External/tvaccion/heitv", logo: "https://hei.com.py/wp-content/uploads/2021/04/Logo-HEI-White.png" },
+            { name: "FARRA PLAY", url: "http://159.203.148.226/live/farra.m3u8", logo: "https://farra.com.py/wp-content/uploads/2020/05/FARRA-logo.png" },
+            { name: "HBO", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278540.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/d/de/HBO_logo.svg" },
+            { name: "WARNER TV", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278541.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/1/17/Warner_TV_logo.svg" },
+            { name: "SPACE", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278542.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/Space_logo.svg" },
+            { name: "TNT SERIES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278543.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5f/TNT_Series_logo.svg" },
+            { name: "CANAL SONY", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278544.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/9/91/Sony_Channel_logo.svg" },
+            { name: "AXN", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278545.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/4/4c/AXN_logo.svg" },
+            { name: "A&E", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278546.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/a/af/A%26E_Logo.svg" },
+            { name: "CINEMAX", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278547.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Cinemax_logo.svg" },
+            { name: "PARAMOUNT", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278548.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Paramount_Network_logo.svg" },
+            { name: "STAR CHANNEL", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278549.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Star_Channel_logo.svg" },
+            { name: "UNIVERSAL", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278550.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Universal_TV_logo.svg" },
+            { name: "A24", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278776.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/a/af/A24_Noticias_logo.png" },
+            { name: "LN+ (LA NACION)", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278777.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Logo_de_La_Naci%C3%B3n_%2B.png" },
+            { name: "CRONICA TV", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278778.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/0/00/Cr%C3%B3nica_TV_logo_2017.png" },
+            { name: "C5N", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278779.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5d/C5N_Logo_2021.png" }
+        ];
+
+        let allChannels = [];
+
+        async function init() {
+            try {
+                const response = await fetch('https://magma.alwaysdata.net/budtv/tvmagmanew/api.php');
+                const text = await response.text();
+                const lines = text.split('\n');
+                let remote = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].includes('#EXTINF:')) {
+                        const name = lines[i].split(',')[1]?.trim() || "Canal Extra";
+                        const url = lines[i+1]?.trim();
+                        const logoMatch = lines[i].match(/tvg-logo="([^"]+)"/);
+                        const logo = logoMatch ? logoMatch[1] : "";
+                        if (url && url.startsWith('http')) remote.push({ name, url, logo });
+                    }
+                }
+                allChannels = [...manualChannels, ...remote];
+                allChannels.sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: 'base'}));
+                render();
+            } catch (e) {
+                allChannels = manualChannels.sort((a, b) => a.name.localeCompare(b.name));
+                render();
+            }
+        }
+
+        function render(filter = "") {
+            const grid = document.getElementById('mainGrid');
+            grid.innerHTML = "";
+            const filtered = allChannels.filter(ch => ch.name.toLowerCase().includes(filter.toLowerCase()));
+            filtered.forEach(ch => {
+                const card = document.createElement('div');
+                card.className = "channel-card";
+                card.innerHTML = `<div class="img-box"><img src="${ch.logo}" referrerpolicy="no-referrer" onerror="this.src='https://via.placeholder.com/80/222/fff?text=TV'"></div><span>${ch.name}</span>`;
+                card.onclick = () => window.location.href = ch.url;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => render(e.target.value));
+        init();
+    </script>
+</body>
 </html>
