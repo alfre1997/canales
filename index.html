@@ -12,18 +12,26 @@
         .navbar { background: #000; border-bottom: 1px solid #222; padding: 15px; text-align: center; }
         .navbar-brand { font-weight: 800; color: var(--accent) !important; letter-spacing: 2px; text-transform: uppercase; font-size: 22px; }
 
-        .search-container { max-width: 800px; margin: 15px auto 10px auto; padding: 0 15px; }
-        .form-control { background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; padding: 10px; font-size: 14px; }
+        .search-container { max-width: 800px; margin: 20px auto 10px auto; padding: 0 15px; }
+        .form-control { background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; padding: 12px; font-size: 15px; }
         .form-control:focus { background: #222; border-color: var(--accent); color: white; box-shadow: none; }
 
-        .filter-container { display: flex; justify-content: center; gap: 5px; padding: 0 10px 15px 10px; overflow-x: auto; scrollbar-width: none; }
+        .filter-container { 
+            max-width: 800px; 
+            margin: 0 auto 20px auto; 
+            padding: 0 15px; 
+            display: flex; 
+            justify-content: flex-start; 
+            gap: 8px; 
+            overflow-x: auto; 
+            scrollbar-width: none; 
+        }
         .filter-container::-webkit-scrollbar { display: none; }
 
         .btn-filter { 
             background: #1a1a1a; border: 1px solid #333; color: #888; 
-            font-size: 9px; font-weight: 800; padding: 8px 10px; border-radius: 5px; 
-            text-transform: uppercase; cursor: pointer; white-space: nowrap;
-            min-width: 80px; text-align: center; flex-shrink: 0;
+            font-size: 10px; font-weight: 800; padding: 10px 16px; border-radius: 6px; 
+            text-transform: uppercase; cursor: pointer; white-space: nowrap; flex-shrink: 0;
         }
         .btn-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
 
@@ -32,21 +40,21 @@
         .channel-card { 
             background: var(--card); border-radius: 10px; padding: 12px; 
             text-align: center; cursor: pointer; transition: 0.2s;
-            border: 1px solid #222; height: 130px; display: flex; 
+            border: 1px solid #222; height: 135px; display: flex; 
             flex-direction: column; align-items: center; justify-content: center;
         }
         .channel-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,0,0,0.2); }
         
-        .img-box { height: 50px; width: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; overflow: hidden; }
+        .img-box { height: 55px; width: 55px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden; }
         .channel-card img { max-height: 100%; max-width: 100%; object-fit: contain; }
         
         .fallback-avatar { 
             width: 50px; height: 50px; background: #1a1a1a; color: var(--accent); 
             border: 2px solid #333; border-radius: 50%; display: flex; 
-            align-items: center; justify-content: center; font-weight: 800; font-size: 22px; 
+            align-items: center; justify-content: center; font-weight: 800; 
         }
 
-        .channel-card span { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #ccc; display: block; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .channel-card span { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #ccc; display: block; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -61,65 +69,48 @@
 
     <div class="filter-container">
         <div class="btn-filter active" onclick="filterCat('TODOS', this)">TODOS</div>
+        <div class="btn-filter" onclick="filterCat('24/7', this)">24/7</div>
         <div class="btn-filter" onclick="filterCat('NACIONALES PY', this)">NACIONALES PY</div>
         <div class="btn-filter" onclick="filterCat('DEPORTES', this)">DEPORTES</div>
-        <div class="btn-filter" onclick="filterCat('VARIEDADES', this)">VARIEDADES</div>
+        <div class="btn-filter" onclick="filterCat('CINE/SERIES', this)">CINE/SERIES</div>
+        <div class="btn-filter" onclick="filterCat('NIÑOS', this)">NIÑOS</div>
     </div>
 
     <div id="mainGrid" class="channel-grid"></div>
 
     <script>
         const manualChannels = [
+            // 24/7
+            { name: "FUTURAMA 24/7", cat: "24/7", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278850.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/8/84/Futurama_1999_logo.svg" },
+            
             // NACIONALES PY
-            { name: "ABC TV", cat: "NACIONALES PY", url: "https://cdn.jwplayer.com/live/broadcast/aide2636.mpd", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjkUPqtzL9tm0weAroMA3d690z-aGPedrLlNGDDVclqwQ2lpiOua-15lhunFQ9ykbCC0KAnf2mYH6Ogp9MoWoNNYGlqClbegTamL3Y30Xq7UR5-z5xBwybm6lm5QCuFW7OQGwwfI7dXHBNp/s900/ABC+TV+en+vivo.jpg" },
+            { name: "SNT HD", cat: "NACIONALES PY", url: "http://37.230.57.142:9981/stream/channelid/942731043?profile=pass", logo: "https://tvinsur.com/wp-content/uploads/2023/12/SNT-Paraguay-en-vivo-Online.webp" },
+            { name: "TELEFUTURO HD", cat: "NACIONALES PY", url: "http://37.230.57.142:9981/stream/channelid/1205239446?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e0/TelefuturoLogo2022.png" },
+            { name: "TRECE PY", cat: "NACIONALES PY", url: "http://37.230.57.142:9981/stream/channelid/594907891?profile=pass", logo: "https://tvinsur.com/wp-content/uploads/2023/12/Canal-Trece-Paraguay-en-vivo-Online.webp" },
+            { name: "ABC TV", cat: "NACIONALES PY", url: "https://cdn.jwplayer.com/live/broadcast/aide2636.mpd", logo: "https://upload.wikimedia.org/wikipedia/commons/7/70/ABC_TV_Paraguay_logo.png" },
+            { name: "NPY", cat: "NACIONALES PY", url: "https://www.desdepylabs.com/External/tvaccion/npy", logo: "https://upload.wikimedia.org/wikipedia/commons/f/f3/NPY_logo.png" },
+            { name: "GEN", cat: "NACIONALES PY", url: "https://gentv.desdepylabs.com/External/tvaccion/gentv", logo: "https://upload.wikimedia.org/wikipedia/commons/1/12/Logo_GEN.png" },
+            { name: "AMERICA PY", cat: "NACIONALES PY", url: "http://37.230.57.142:9981/stream/channelid/1000724184?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/3/3a/America_TV_Paraguay_logo.png" },
             { name: "C9N", cat: "NACIONALES PY", url: "https://d2qsan2ut81n2k.cloudfront.net/live/48f53430-9014-4459-a048-6169dac14140/ts:abr.m3u8", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg6lnz2CDRLLnpQuDEIbbdewTqtDKk9hzCf25mF-4aIqWTS1JksMcSA-C5j3LRkA1_GYXYNHgSGpxno4C62tgD57UmYQaWWdswOgu9qIMQjFBWwUjvsfIFgSb74f4JxOtTBqIFqFKvFtC-9/s1042/C9N+en+vivo.jpg" },
-            { name: "GEN", cat: "NACIONALES PY", url: "https://gentv.desdepylabs.com/External/tvaccion/gentv", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjV3EkyMzkDOEzag41tRjz59O3pC0Nar7SabfXNxeXLRT_2OrtH8znisKfmH_aGwtfQKd-HdK_F8o6ZuDMQIC32KDwvI1xLg_ruUElRzQn5_-3rtKbjPgZJCYnurz8_22yWcKmkGctfQCCn/s513/GEN+en+vivo.jpg" },
-            { name: "LA TELE", cat: "NACIONALES PY", url: "https://www.desdepylabs.com/External/tvaccion/latele", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi64FmGWdI8ttE3TUfDlvlnLZlVRlKlfb-tUTO8Idqn4fLEqY_t_Vy3MTFZhWJdI6ENBysxzRYlZeXoANHoZpMe1Q-G8LIYsivIh9PupdN61W6U-weSmPmMM2Y2a36P5sNPm8vnCSgdPLnL/s250/La+Tele+en+vivo.jpg" },
-            { name: "NPY", cat: "NACIONALES PY", url: "https://www.desdepylabs.com/External/tvaccion/npy", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgHqF5ttfQ-As7BtoTYABhGWWVGnZrYPz5_L5Ab-KJKkosd-os3v6qLE-5mCaC9pEJRMc7ZfzW_j0BcA45n2KGWH5D1ZinKpEPkrAIs1zrvwSJYzfmo0UihZsq0LAs0aUd3sMSGxNqoyWco/s1366/NPY+en+vivo.png" },
-            { name: "PARAGUAY TV", cat: "NACIONALES PY", url: "https://stream.paraguaytv.gov.py/memfs/bbe36fed-9b49-4d1d-adaa-4bd6d1b2e386_output_0.m3u8", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEQXi245YVRoKkW0BsRYVYHhaYq81bW4Qo4U5MT5sG9LxjZH3HOdb-e32Rnfq4Y6McRYnHGDVPPQ9M0_WzzGk2eWSpFCh3p3Lt_tHOqJbeyF85b61x_bxQK0KfGL_nOJPhbTgCoDKJkTmnJ/w700-h400-p-k-no-nu/Paraguay+TV+en+vivo.png" },
-            { name: "SNT", cat: "NACIONALES PY", url: "https://d2qsan2ut81n2k.cloudfront.net/live/2e1f1b6a-9d03-4194-8559-2eabe61a1555/ts:abr.m3u8", logo: "https://tvinsur.com/wp-content/uploads/2023/12/SNT-Paraguay-en-vivo-Online.webp" },
-            { name: "TELEFUTURO", cat: "NACIONALES PY", url: "https://www.desdepylabs.com/External/tvaccion/telefuturo", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e0/TelefuturoLogo2022.png" },
-            { name: "TRECE PY", cat: "NACIONALES PY", url: "https://geo.dailymotion.com/player/x1at3a.html?video=k4nLYiNrBX8W5jDbSlM", logo: "https://tvinsur.com/wp-content/uploads/2023/12/Canal-Trece-Paraguay-en-vivo-Online.webp" },
-            { name: "UNICANAL", cat: "NACIONALES PY", url: "https://geo.dailymotion.com/player/x1apn6.html?video=k1mHLKycOlKgo3Db5GI", logo: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgfW3J9GRYfLNJmRY8xba_veN14bEXrBsX7FN8Yu1VAT-G1mW8c4KjesXoQe540738X4jlk07z7W3MeDw2TjvEjQrpGYrPX-wLmyU0Ogbwc0X1BXRBTd_4Q5PfMHC9UjVXsEvIWCpUgMMZo/s440/Unicanal+en+vivo.jpg" },
-            { name: "CANAL PRO", cat: "NACIONALES PY", url: "https://pro.desdeparaguay.net/pro/pro/playlist.m3u8", logo: "https://canalpro.com.py/wp-content/uploads/2017/06/logo-pro-1.png" },
-            { name: "EDUCA PY", cat: "NACIONALES PY", url: "https://educa.desdeparaguay.net/educa/educa/playlist.m3u8", logo: "https://www.educa.com.py/wp-content/uploads/2020/08/logo-educa.png" },
-            { name: "ÑANDUTI TV", cat: "NACIONALES PY", url: "https://zn1tf.desdeparaguay.net/nandutitv/nandutitv_baja/chunklist_w991402185.m3u8", logo: "https://nanduti.com.py/wp-content/uploads/2020/04/Logo-Nanduti-TV.png" },
-            { name: "RCC PY", cat: "NACIONALES PY", url: "https://rcc.desdeparaguay.net/rcc/rcc/playlist.m3u8", logo: "https://rcc.com.py/wp-content/uploads/2018/06/logo-rcc.png" },
-            { name: "TV CAMARA", cat: "NACIONALES PY", url: "http://190.128.213.146:1935/live/livestream/playlist.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Tv_Camara_Paraguay_logo.png" },
 
             // DEPORTES
-            { name: "TIGO SPORTS", cat: "DEPORTES", url: "https://futbolparaguayotv.github.io/futbolparaguayotv/3ventos.html", logo: "https://discovery-content-py.tigocloud.net/uploads/Frame_49_84a38f7e5e.png" },
-            { name: "TIGO SPORTS +", cat: "DEPORTES", url: "https://futbolparaguayotv.github.io/futbolparaguayotv/3ventos2.html", logo: "https://discovery-content-py.tigocloud.net/uploads/Frame_49_84a38f7e5e.png" },
-            { name: "TIGO SPORTS 3", cat: "DEPORTES", url: "https://futbolparaguayotv.github.io/futbolparaguayotv/3ventos3.html", logo: "https://discovery-content-py.tigocloud.net/uploads/Frame_49_84a38f7e5e.png" },
-            { name: "ESPN", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278765.m3u8", logo: "https://logodownload.org/wp-content/uploads/2017/04/espn-logo-1.png" },
-            { name: "ESPN 2", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278766.m3u8", logo: "https://logodownload.org/wp-content/uploads/2017/04/espn-logo-1.png" },
-            { name: "ESPN 3", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278767.m3u8", logo: "https://logodownload.org/wp-content/uploads/2017/04/espn-logo-1.png" },
-            { name: "ESPN 4", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278768.m3u8", logo: "https://logodownload.org/wp-content/uploads/2017/04/espn-logo-1.png" },
-            { name: "ESPN PREMIUM", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/283887.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Espn_premium.png" },
-            { name: "FOX SPORTS 1", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278766.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Fox_Sports_logo.svg/2560px-Fox_Sports_logo.svg.png" },
-            { name: "FOX SPORTS 2", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278767.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Fox_Sports_logo.svg/2560px-Fox_Sports_logo.svg.png" },
-            { name: "FOX SPORTS 3", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278768.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Fox_Sports_logo.svg/2560px-Fox_Sports_logo.svg.png" },
-            { name: "TYC SPORTS", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278770.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/e/ee/TyC_Sports_Logo.png" },
-            { name: "DSPORTS", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278771.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/e/ef/DSports_logo.png" },
-            { name: "WIN SPORTS", cat: "DEPORTES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278769.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Win_Sports_Logo.png" },
+            { name: "TIGO SPORTS", cat: "DEPORTES", url: "https://futbolparaguayotv.github.io/futbolparaguayotv/3ventos.html", logo: "https://upload.wikimedia.org/wikipedia/commons/4/4b/Tigo_Sports_logo.svg" },
+            { name: "ESPN HD", cat: "DEPORTES", url: "http://45.172.16.186:9981/stream/channelid/1688445886?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/ESPN_logo.svg" },
+            { name: "ESPN PREMIUM", cat: "DEPORTES", url: "http://45.172.16.186:9981/stream/channelid/635786642?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Espn_premium.png" },
+            { name: "TYC SPORTS HD", cat: "DEPORTES", url: "http://45.172.16.186:9981/stream/channelid/2114770387?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/e/ee/TyC_Sports_Logo.png" },
+            { name: "FOX SPORTS HD", cat: "DEPORTES", url: "http://45.172.16.186:9981/stream/channelid/2027716405?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/1/18/Fox_Sports_logo.svg" },
 
-            // VARIEDADES
-            { name: "HBO", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278540.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/d/de/HBO_logo.svg" },
-            { name: "STAR CHANNEL", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278549.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Star_Channel_logo.svg" },
-            { name: "WARNER TV", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278541.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/1/17/Warner_TV_logo.svg" },
-            { name: "DISCOVERY CHANNEL", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278630.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e5/Discovery_Channel_logo.svg" },
-            { name: "NATIONAL GEOGRAPHIC", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278637.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6a/National_Geographic_Channel_logo.svg" },
-            { name: "HISTORY CHANNEL", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278635.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/f/f5/History_Logo.svg" },
-            { name: "CARTOON NETWORK", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278537.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/8/80/Cartoon_Network_2010_logo.svg" },
-            { name: "DISCOVERY KIDS", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/budtvline/8Y3ymUpJESps/278536.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/2/23/Discovery_Kids_Logo.png" },
-            { name: "TN (TODO NOTICIAS)", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278775.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/0/03/Logo_de_Todo_Noticias.png" },
-            { name: "C5N", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278779.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5d/C5N_Logo_2021.png" },
-            { name: "A24", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278776.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/a/af/A24_Noticias_logo.png" },
-            { name: "CRONICA TV", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278778.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/0/00/Cr%C3%B3nica_TV_logo_2017.png" },
-            { name: "LN+", cat: "VARIEDADES", url: "http://xcm.budtv-ultra.com:9000/budtv/websline/eWmWuCeW3j9F/278777.m3u8", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Logo_de_La_Naci%C3%B3n_%2B.png" },
-            { name: "FARRA PLAY", cat: "VARIEDADES", url: "http://159.203.148.226/live/farra.m3u8", logo: "https://farra.com.py/wp-content/uploads/2020/05/FARRA-logo.png" },
-            { name: "HEI TV", cat: "VARIEDADES", url: "https://gentv.desdeparaguay.net/External/tvaccion/heitv", logo: "https://hei.com.py/wp-content/uploads/2021/04/Logo-HEI-White.png" },
-            { name: "VENUS MEDIA", cat: "VARIEDADES", url: "https://tigocloud.desdeparaguay.net/venusmedia/venusmedia/playlist.m3u8", logo: "https://venus.com.py/wp-content/uploads/2017/12/logo-venus.png" }
+            // CINE/SERIES
+            { name: "HBO HD", cat: "CINE/SERIES", url: "http://45.172.16.186:9981/stream/channelid/602651998?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/d/de/HBO_logo.svg" },
+            { name: "STAR CHANNEL HD", cat: "CINE/SERIES", url: "http://45.172.16.186:9981/stream/channelid/1515112925?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Star_Channel_logo.svg" },
+            { name: "WARNER TV HD", cat: "CINE/SERIES", url: "http://45.172.16.186:9981/stream/channelid/724963838?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/1/17/Warner_TV_logo.svg" },
+            { name: "TNT HD", cat: "CINE/SERIES", url: "http://45.172.16.186:9981/stream/channelid/1778004310?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/b/b5/TNT_Logo_2016.svg" },
+            { name: "UNIVERSAL HD", cat: "CINE/SERIES", url: "http://45.172.16.186:9981/stream/channelid/1539493071?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c5/Universal_TV_Logo.png" },
+
+            // NIÑOS
+            { name: "CARTOON NETWORK HD", cat: "NIÑOS", url: "http://45.172.16.186:9981/stream/channelid/154335388?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/8/80/Cartoon_Network_2010_logo.svg" },
+            { name: "DISCOVERY KIDS", cat: "NIÑOS", url: "http://45.172.16.186:9981/stream/channelid/1511586218?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/2/23/Discovery_Kids_Logo.png" },
+            { name: "DISNEY CHANNEL HD", cat: "NIÑOS", url: "http://45.172.16.186:9981/stream/channelid/669366619?profile=pass", logo: "https://upload.wikimedia.org/wikipedia/commons/d/da/Disney_Channel_logo.svg" }
         ];
 
         let allChannels = [];
@@ -131,7 +122,6 @@
                 const text = await response.text();
                 const lines = text.split('\n');
                 let remote = [];
-
                 for (let i = 0; i < lines.length; i++) {
                     if (lines[i].includes('#EXTINF:')) {
                         const name = lines[i].split(',')[1]?.trim() || "Canal";
@@ -159,30 +149,22 @@
 
         function handleImgError(img, name) {
             img.onerror = null; 
-            const initial = name.charAt(0).toUpperCase();
             const parent = img.parentElement;
-            parent.innerHTML = `<div class="fallback-avatar">${initial}</div>`;
+            parent.innerHTML = `<div class="fallback-avatar">${name.charAt(0).toUpperCase()}</div>`;
         }
 
         function render(search = "") {
             const grid = document.getElementById('mainGrid');
             grid.innerHTML = "";
-            
             let filtered = allChannels.filter(ch => {
                 const matchesSearch = ch.name.toLowerCase().includes(search.toLowerCase());
-                const matchesCat = (currentFilter === "TODOS") || (ch.cat === currentFilter);
+                const matchesCat = (currentFilter === "TODOS") || (ch.cat === currentFilter) || (ch.cat === "API" && currentFilter === "TODOS");
                 return matchesSearch && matchesCat;
             });
-
             filtered.forEach(ch => {
                 const card = document.createElement('div');
                 card.className = "channel-card";
-                card.innerHTML = `
-                    <div class="img-box">
-                        <img src="${ch.logo}" referrerpolicy="no-referrer" onerror="handleImgError(this, '${ch.name}')">
-                    </div>
-                    <span>${ch.name}</span>
-                `;
+                card.innerHTML = `<div class="img-box"><img src="${ch.logo}" onerror="handleImgError(this, '${ch.name}')"></div><span>${ch.name}</span>`;
                 card.onclick = () => window.open(ch.url, '_blank');
                 grid.appendChild(card);
             });
