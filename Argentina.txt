@@ -77,8 +77,6 @@ http://190.60.37.154:45000/play/a05a/index.m3u8
 http://181.94.215.185:4000/play/a05r/index.m3u8
 #EXTINF:0 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuJv-J08hvKCc2AbQusXrgAPmfda2RxIqpHw&s" group-title="Varios",38-Flow Eventos 2
 http://181.94.215.185:4000/play/a05s/index.m3u8
-#EXTINF:0 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdFK_heqWba22Mvq468L1tEM42AcS0CHGuiA&s" group-title="Varios",44-Dsports +
-http://ultra-premium-pro.xyz:8080/999061768tv/a3y12a/468
 #EXTINF:0 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2sZlO4JrDDYNRwxU3IgeFVZkQTkGUhAyRcg&s" group-title="Varios",45-Fox Sports
 http://45.5.151.62:8000/play/a07e/index.m3u8
 #EXTINF:0 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2sZlO4JrDDYNRwxU3IgeFVZkQTkGUhAyRcg&s" group-title="Varios",46-Fox Sports HD
