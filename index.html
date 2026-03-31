@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Desencriptador de Películas - ALFREDO</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #0a0a0a; color: #fff; text-align: center; padding: 50px; }
+        .box { background: #161616; padding: 30px; border-radius: 10px; border: 1px solid #00ff00; display: inline-block; }
+        button { background: #00ff00; color: #000; border: none; padding: 15px 25px; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        #status { margin-top: 20px; color: #888; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h1>Extractor Pelis Pro</h1>
+        <p>Desencripta el archivo de películas con la llave del panel.</p>
+        <button onclick="procesarPelis()">DESENCRIPTAR Y DESCARGAR</button>
+        <p id="status">Esperando...</p>
+    </div>
+
+    <script>
+        const PELIS_URL = 'https://vimetrix.lat/panelpelis/pelis.json';
+        const PROXY = 'https://corsproxy.io/?' + encodeURIComponent(PELIS_URL);
+        const KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
+        const CFG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
+
+        function decrypt(text) {
+            if (!text || typeof text !== 'string' || text.length < 10) return text;
+            try {
+                let current = text;
+                for(let i = 0; i < 2; i++) {
+                    let bytes = CryptoJS.AES.decrypt(current, KEY, CFG);
+                    let result = bytes.toString(CryptoJS.enc.Utf8);
+                    if (result) current = result;
+                }
+                return current;
+            } catch (e) { return text; }
+        }
+
+        async function procesarPelis() {
+            const status = document.getElementById('status');
+            status.innerText = "Descargando pelis.json...";
+
+            try {
+                const res = await fetch(PROXY);
+                const data = await res.json();
+                status.innerText = "Desencriptando contenido...";
+
+                const limpio = data.map(cat => ({
+                    ...cat,
+                    samples: cat.samples.map(peli => ({
+                        ...peli,
+                        url: decrypt(peli.url),
+                        icono: peli.icono // Las imágenes suelen no estar encriptadas, pero si lo están, usa decrypt()
+                    }))
+                }));
+
+                const blob = new Blob([JSON.stringify(limpio, null, 4)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'pelis_desencriptado_ALFREDO.json';
+                a.click();
+
+                status.style.color = "#00ff00";
+                status.innerText = "¡Completado! Revisa tus descargas.";
+            } catch (e) {
+                status.style.color = "#ff0000";
+                status.innerText = "Error al procesar el archivo.";
+            }
+        }
+    </script>
+</body>
+</html>
