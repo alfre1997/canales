@@ -2,86 +2,93 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Pelis Extractor V2 - ALFREDO</title>
+    <title>Extractor Maestro Pelis - ALFREDO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #050505; color: #fff; text-align: center; padding: 50px; }
-        .container { background: #111; padding: 30px; border-radius: 10px; border: 1px solid #ff0000; display: inline-block; }
-        button { background: #ff0000; color: #fff; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; }
-        #status { margin-top: 20px; color: #aaa; font-family: monospace; }
+        body { font-family: sans-serif; background: #0a0a0a; color: #00ff00; text-align: center; padding: 50px; }
+        .card { border: 2px solid #00ff00; padding: 30px; display: inline-block; border-radius: 15px; background: #111; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
+        button { background: #00ff00; color: #000; padding: 15px 30px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 16px; }
+        #status { margin-top: 20px; color: #fff; font-family: monospace; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>EXTRACTOR PELIS V2</h1>
-        <p>Corrección de desencriptación para links de películas.</p>
-        <button onclick="procesar()">DESENCRIPTAR Y GUARDAR</button>
-        <p id="status">Listo para procesar...</p>
+    <div class="card">
+        <h1>UNLOCKED PELIS V3</h1>
+        <p>Detectando cifrado AES + Base64...</p>
+        <button onclick="procesarTodo()">DESENCRIPTAR Y DESCARGAR</button>
+        <div id="status">Esperando...</div>
     </div>
 
     <script>
         const KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
         const CFG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
 
-        // Función mejorada para limpiar el texto antes de desencriptar
-        function cleanDecrypt(cipherText) {
-            if (!cipherText || cipherText.length < 20) return cipherText;
+        function superDecrypt(data) {
+            if (!data || data.length < 10) return data;
+            
+            // 1. Limpiar escapes de barras que pone el panel PHP
+            let cleanData = data.replace(/\\/g, '');
             
             try {
-                let current = cipherText.trim();
-                
-                for(let i = 0; i < 2; i++) {
-                    // Intentamos desencriptar
-                    let bytes = CryptoJS.AES.decrypt(current, KEY, CFG);
-                    let result = bytes.toString(CryptoJS.enc.Utf8);
-                    
-                    if (result && result.includes('http')) {
-                        current = result;
-                    } else if (result) {
-                        current = result;
-                    }
+                // Intento 1: ¿Es un link directo?
+                if (cleanData.startsWith('http')) return cleanData;
+
+                // Intento 2: Desencriptar Capa 1
+                let bytes1 = CryptoJS.AES.decrypt(cleanData, KEY, CFG);
+                let text1 = bytes1.toString(CryptoJS.enc.Utf8);
+
+                if (text1 && text1.includes('http')) return text1;
+
+                // Intento 3: Desencriptar Capa 2 (Doble AES)
+                if (text1) {
+                    let bytes2 = CryptoJS.AES.decrypt(text1, KEY, CFG);
+                    let text2 = bytes2.toString(CryptoJS.enc.Utf8);
+                    if (text2 && text2.includes('http')) return text2;
                 }
-                return current;
+
+                // Intento 4: ¿Es solo Base64 simple?
+                let rawB64 = atob(cleanData);
+                if (rawB64.includes('http')) return rawB64;
+
             } catch (e) {
-                return cipherText;
+                // Si todo falla, intentar devolver lo más limpio posible
+                return cleanData;
             }
+            return cleanData;
         }
 
-        async function procesar() {
+        async function procesarTodo() {
             const status = document.getElementById('status');
-            status.innerText = "Descargando pelis.json...";
-            
+            status.innerText = "Obteniendo pelis.json...";
+
             try {
+                // Usamos el proxy para saltar CORS de vimetrix
                 const url = 'https://vimetrix.lat/panelpelis/pelis.json';
                 const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
-                const data = await res.json();
-                
-                status.innerText = "Procesando doble capa AES...";
+                const json = await res.json();
 
-                const limpio = data.map(cat => ({
+                status.innerText = "Limpiando base de datos...";
+
+                const final = json.map(cat => ({
                     ...cat,
                     samples: cat.samples.map(peli => ({
                         ...peli,
-                        url: cleanDecrypt(peli.url),
-                        // Desencriptamos también los iconos por si acaso
-                        icono: cleanDecrypt(peli.icono),
-                        iconoHorizontal: cleanDecrypt(peli.iconoHorizontal),
-                        iconpng: cleanDecrypt(peli.iconpng)
+                        url: superDecrypt(peli.url),
+                        icono: superDecrypt(peli.icono),
+                        iconoHorizontal: superDecrypt(peli.iconoHorizontal)
                     }))
                 }));
 
-                const blob = new Blob([JSON.stringify(limpio, null, 4)], { type: 'application/json' });
+                const blob = new Blob([JSON.stringify(final, null, 4)], { type: 'application/json' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'pelis_REQUETE_LIMPIAS.json';
+                a.download = 'pelis_DESBLOQUEADAS_ALFREDO.json';
                 a.click();
                 
-                status.innerText = "¡Hecho! Archivo descargado.";
-                status.style.color = "#00ff00";
+                status.innerText = "¡TERMINADO! Archivo listo.";
             } catch (e) {
-                status.innerText = "Error en la descarga o proceso.";
-                status.style.color = "#ff0000";
+                status.innerText = "Error: No se pudo conectar al panel.";
             }
         }
     </script>
