@@ -2,94 +2,91 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Extractor Pelis Vimetrix - ALFREDO</title>
+    <title>Desencriptador Oficial - ALFREDO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: #00ff00; text-align: center; padding: 50px; }
-        .card { border: 2px solid #00ff00; padding: 30px; display: inline-block; background: #111; border-radius: 15px; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
-        button { background: #00ff00; color: #000; padding: 15px 30px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 16px; transition: 0.3s; }
-        button:hover { background: #00cc00; transform: scale(1.05); }
-        #status { margin-top: 20px; color: #fff; font-family: monospace; }
-        .log { font-size: 12px; color: #666; margin-top: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #00ff00; text-align: center; padding: 50px; }
+        .panel { border: 2px solid #00ff00; padding: 30px; background: #111; border-radius: 12px; display: inline-block; box-shadow: 0 0 15px #00ff00; }
+        button { background: #00ff00; color: #000; padding: 15px 30px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        #status { margin-top: 20px; color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>PELIS DECRYPTOR PRO</h1>
-        <p style="color: #eee;">Lógica avanzada para el panel de Películas</p>
-        <button onclick="procesar()">DESENCRIPTAR Y GUARDAR JSON</button>
-        <div id="status">Esperando...</div>
-        <div class="log">Llave: e72of82ke0gu2o2k</div>
+    <div class="panel">
+        <h1>SISTEMA DE DESBLOQUEO ALFREDO</h1>
+        <p>Lógica: AES-128-ECB + Base64 (OpenSSL Compatible)</p>
+        <button onclick="descifrarConLogicaPHP()">DESENCRIPTAR PELIS.JSON</button>
+        <div id="status">Esperando acción...</div>
     </div>
 
     <script>
-        const KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
+        // Clave idéntica a tu define('ENCRYPTION_KEY', 'e72of82ke0gu2o2k');
+        const KEY_STR = 'e72of82ke0gu2o2k';
+        const KEY = CryptoJS.enc.Utf8.parse(KEY_STR);
         const CFG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
 
-        function desencriptarReal(texto) {
-            if (!texto || texto.length < 15) return texto;
-            
-            try {
-                // 1. Limpiar el texto de posibles escapes de barras del JSON
-                let limpia = texto.replace(/\\/g, '').trim();
-                
-                // 2. Intentar desencriptar (Primera Capa)
-                let de1 = CryptoJS.AES.decrypt(limpia, KEY, CFG);
-                let res1 = de1.toString(CryptoJS.enc.Utf8);
-                
-                if (res1 && res1.includes('http')) return res1;
+        function decryptPHP(ciphertext) {
+            if (!ciphertext || ciphertext.length < 10) return ciphertext;
 
-                // 3. Intentar Segunda Capa (Doble encriptación del panel)
-                if (res1) {
-                    let de2 = CryptoJS.AES.decrypt(res1, KEY, CFG);
-                    let res2 = de2.toString(CryptoJS.enc.Utf8);
-                    if (res2 && res2.includes('http')) return res2;
+            try {
+                // Paso 1: Limpiar la cadena de escapes que mete el JSON
+                let cleanText = ciphertext.replace(/\\/g, '').trim();
+
+                // Paso 2: Revertir el base64_encode(openssl_encrypt(...))
+                // CryptoJS.AES.decrypt espera una cadena Base64, así que lo pasamos directo
+                let decrypted = CryptoJS.AES.decrypt(cleanText, KEY, CFG);
+                let plaintext = decrypted.toString(CryptoJS.enc.Utf8);
+
+                // Paso 3: Si el resultado es vacío o basura, intentar una segunda capa
+                // (Por si el script PHP se ejecutó dos veces)
+                if (!plaintext || !plaintext.includes('http')) {
+                    let secondTry = CryptoJS.AES.decrypt(plaintext || cleanText, KEY, CFG);
+                    let finalTxt = secondTry.toString(CryptoJS.enc.Utf8);
+                    if (finalTxt.includes('http')) return finalTxt;
                 }
-                
-                // Si no devolvió nada útil, retornamos el primer resultado exitoso
-                return res1 || texto;
+
+                return plaintext || ciphertext;
             } catch (e) {
-                return texto;
+                return ciphertext;
             }
         }
 
-        async function procesar() {
+        async function descifrarConLogicaPHP() {
             const status = document.getElementById('status');
-            status.innerText = "Conectando con vimetrix.lat...";
-            
-            try {
-                // Usamos el proxy para cargar tu archivo pelis.json
-                const url = 'https://vimetrix.lat/panelpelis/pelis.json';
-                const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
-                const data = await res.json();
-                
-                status.innerText = "Desencriptando " + data.length + " categorías...";
+            status.innerText = "Descargando pelis.json desde vimetrix...";
 
-                const final = data.map(cat => ({
-                    ...cat,
-                    samples: cat.samples.map(peli => ({
+            try {
+                // Obtenemos el JSON directamente de tu servidor
+                const url = 'https://vimetrix.lat/panelpelis/pelis.json';
+                const response = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
+                const json = await response.json();
+
+                status.innerText = "Aplicando algoritmo OpenSSL inverso...";
+
+                const dataLimpia = json.map(categoria => ({
+                    ...categoria,
+                    samples: categoria.samples.map(peli => ({
                         ...peli,
-                        url: desencriptarReal(peli.url),
-                        icono: peli.icono.startsWith('http') ? peli.icono : desencriptarReal(peli.icono),
-                        iconoHorizontal: peli.iconoHorizontal.startsWith('http') ? peli.iconoHorizontal : desencriptarReal(peli.iconoHorizontal)
+                        // Aplicamos la lógica a la URL y a los iconos si estuvieran cifrados
+                        url: decryptPHP(peli.url),
+                        icono: peli.icono.includes('http') ? peli.icono : decryptPHP(peli.icono),
+                        iconoHorizontal: peli.iconoHorizontal.includes('http') ? peli.iconoHorizontal : decryptPHP(peli.iconoHorizontal)
                     }))
                 }));
 
-                status.innerText = "¡Completado! Descargando archivo limpio...";
-                
-                const blob = new Blob([JSON.stringify(final, null, 4)], { type: 'application/json' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'pelis_ALFREDO_limpias.json';
-                link.click();
-                
-                status.style.color = "#00ff00";
+                status.innerText = "¡Proceso terminado con éxito!";
 
-            } catch (e) {
-                console.error(e);
-                status.innerText = "Error: No se pudo procesar el archivo.";
-                status.style.color = "#ff4444";
+                // Generamos el archivo para descargar
+                const blob = new Blob([JSON.stringify(dataLimpia, null, 4)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'pelis_ALFREDO_funcional.json';
+                a.click();
+
+            } catch (err) {
+                status.innerText = "Error: No se pudo acceder al archivo.";
+                console.error(err);
             }
         }
     </script>
