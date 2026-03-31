@@ -2,93 +2,96 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Desencriptador Final Pelis - ALFREDO</title>
+    <title>Extractor Pelis Vimetrix - ALFREDO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #000; color: #00ff00; text-align: center; padding: 50px; }
-        .container { border: 2px solid #00ff00; padding: 30px; display: inline-block; background: #111; border-radius: 10px; }
-        button { background: #00ff00; color: #000; padding: 15px 30px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
-        #status { margin-top: 20px; color: #fff; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: #00ff00; text-align: center; padding: 50px; }
+        .card { border: 2px solid #00ff00; padding: 30px; display: inline-block; background: #111; border-radius: 15px; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
+        button { background: #00ff00; color: #000; padding: 15px 30px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #00cc00; transform: scale(1.05); }
+        #status { margin-top: 20px; color: #fff; font-family: monospace; }
+        .log { font-size: 12px; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>REPARADOR DE ENLACES PELIS</h1>
-    <p>Este script utiliza la lógica exacta del panel Vimetrix.</p>
-    <button onclick="procesar()">DESENCRIPTAR AHORA</button>
-    <div id="status">Listo.</div>
-</div>
+    <div class="card">
+        <h1>PELIS DECRYPTOR PRO</h1>
+        <p style="color: #eee;">Lógica avanzada para el panel de Películas</p>
+        <button onclick="procesar()">DESENCRIPTAR Y GUARDAR JSON</button>
+        <div id="status">Esperando...</div>
+        <div class="log">Llave: e72of82ke0gu2o2k</div>
+    </div>
 
-<script>
-    // La KEY exacta del archivo .env y panel peli.php
-    const MASTER_KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
-    const MASTER_CFG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
+    <script>
+        const KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
+        const CFG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
 
-    function desencriptarVimetrix(input) {
-        if (!input || input.length < 10) return input;
-        
-        try {
-            // 1. Limpiar caracteres de escape del JSON (\/)
-            let raw = input.replace(/\\/g, '').trim();
+        function desencriptarReal(texto) {
+            if (!texto || texto.length < 15) return texto;
             
-            // 2. Primera pasada de AES
-            let step1 = CryptoJS.AES.decrypt(raw, MASTER_KEY, MASTER_CFG);
-            let res1 = step1.toString(CryptoJS.enc.Utf8);
-            
-            if (!res1) return input;
+            try {
+                // 1. Limpiar el texto de posibles escapes de barras del JSON
+                let limpia = texto.replace(/\\/g, '').trim();
+                
+                // 2. Intentar desencriptar (Primera Capa)
+                let de1 = CryptoJS.AES.decrypt(limpia, KEY, CFG);
+                let res1 = de1.toString(CryptoJS.enc.Utf8);
+                
+                if (res1 && res1.includes('http')) return res1;
 
-            // 3. SEGUNDA PASADA: Aquí es donde fallaba antes. 
-            // El panel de pelis SIEMPRE aplica dos veces el cifrado sobre la URL final.
-            let step2 = CryptoJS.AES.decrypt(res1, MASTER_KEY, MASTER_CFG);
-            let res2 = step2.toString(CryptoJS.enc.Utf8);
-
-            // Si el resultado de la segunda vuelta contiene "http", es el link real.
-            if (res2 && res2.includes('http')) {
-                return res2;
+                // 3. Intentar Segunda Capa (Doble encriptación del panel)
+                if (res1) {
+                    let de2 = CryptoJS.AES.decrypt(res1, KEY, CFG);
+                    let res2 = de2.toString(CryptoJS.enc.Utf8);
+                    if (res2 && res2.includes('http')) return res2;
+                }
+                
+                // Si no devolvió nada útil, retornamos el primer resultado exitoso
+                return res1 || texto;
+            } catch (e) {
+                return texto;
             }
-            
-            return res1; // Si solo tenía una capa
-        } catch (e) {
-            return input;
         }
-    }
 
-    async function procesar() {
-        const status = document.getElementById('status');
-        status.innerText = "Cargando archivo...";
-
-        try {
-            const url = 'https://vimetrix.lat/panelpelis/pelis.json';
-            const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
-            const data = await res.json();
-
-            status.innerText = "Desencriptando enlaces (doble capa)...";
-
-            const cleaned = data.map(cat => ({
-                ...cat,
-                samples: cat.samples.map(p => ({
-                    ...p,
-                    url: desencriptarVimetrix(p.url),
-                    icono: p.icono.includes('http') ? p.icono : desencriptarVimetrix(p.icono)
-                }))
-            }));
-
-            // Generar el nuevo JSON
-            const blob = new Blob([JSON.stringify(cleaned, null, 4)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'pelis_ALFREDO_LISTAS.json';
-            a.click();
+        async function procesar() {
+            const status = document.getElementById('status');
+            status.innerText = "Conectando con vimetrix.lat...";
             
-            status.innerText = "¡ÉXITO! Archivo descargado.";
-            status.style.color = "#00ff00";
-        } catch (e) {
-            status.innerText = "Error de conexión con el panel.";
-            status.style.color = "#ff0000";
-        }
-    }
-</script>
+            try {
+                // Usamos el proxy para cargar tu archivo pelis.json
+                const url = 'https://vimetrix.lat/panelpelis/pelis.json';
+                const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
+                const data = await res.json();
+                
+                status.innerText = "Desencriptando " + data.length + " categorías...";
 
+                const final = data.map(cat => ({
+                    ...cat,
+                    samples: cat.samples.map(peli => ({
+                        ...peli,
+                        url: desencriptarReal(peli.url),
+                        icono: peli.icono.startsWith('http') ? peli.icono : desencriptarReal(peli.icono),
+                        iconoHorizontal: peli.iconoHorizontal.startsWith('http') ? peli.iconoHorizontal : desencriptarReal(peli.iconoHorizontal)
+                    }))
+                }));
+
+                status.innerText = "¡Completado! Descargando archivo limpio...";
+                
+                const blob = new Blob([JSON.stringify(final, null, 4)], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'pelis_ALFREDO_limpias.json';
+                link.click();
+                
+                status.style.color = "#00ff00";
+
+            } catch (e) {
+                console.error(e);
+                status.innerText = "Error: No se pudo procesar el archivo.";
+                status.style.color = "#ff4444";
+            }
+        }
+    </script>
 </body>
 </html>
