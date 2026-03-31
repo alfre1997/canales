@@ -2,21 +2,21 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Extractor Maestro Pelis - ALFREDO</title>
+    <title>Extractor Pelis NIVEL DIOS - ALFREDO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #0a0a0a; color: #00ff00; text-align: center; padding: 50px; }
-        .card { border: 2px solid #00ff00; padding: 30px; display: inline-block; border-radius: 15px; background: #111; box-shadow: 0 0 20px rgba(0,255,0,0.2); }
-        button { background: #00ff00; color: #000; padding: 15px 30px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 16px; }
-        #status { margin-top: 20px; color: #fff; font-family: monospace; }
+        body { font-family: 'Segoe UI', sans-serif; background: #050505; color: #00ff00; text-align: center; padding: 50px; }
+        .box { border: 2px solid #00ff00; padding: 40px; background: #111; border-radius: 15px; display: inline-block; box-shadow: 0 0 30px rgba(0,255,0,0.2); }
+        button { background: #00ff00; color: #000; padding: 15px 40px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 1.2rem; }
+        #status { margin-top: 25px; color: #fff; font-family: monospace; border-top: 1px solid #333; padding-top: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>UNLOCKED PELIS V3</h1>
-        <p>Detectando cifrado AES + Base64...</p>
-        <button onclick="procesarTodo()">DESENCRIPTAR Y DESCARGAR</button>
+    <div class="box">
+        <h1>PELIS DECRYPTOR ULTRA</h1>
+        <p style="color:#888">Eliminando triple capa AES del panel Vimetrix</p>
+        <button onclick="superProcesar()">INICIAR EXTRACCIÓN</button>
         <div id="status">Esperando...</div>
     </div>
 
@@ -24,71 +24,74 @@
         const KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
         const CFG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
 
-        function superDecrypt(data) {
-            if (!data || data.length < 10) return data;
-            
-            // 1. Limpiar escapes de barras que pone el panel PHP
-            let cleanData = data.replace(/\\/g, '');
+        function recursivoAES(str, intentos = 0) {
+            if (!str || intentos > 5) return str;
             
             try {
-                // Intento 1: ¿Es un link directo?
-                if (cleanData.startsWith('http')) return cleanData;
+                // 1. Limpiar basura de escapes del JSON PHP
+                let limpia = str.replace(/\\/g, '').trim();
+                
+                // 2. Intentar desencriptar
+                let bytes = CryptoJS.AES.decrypt(limpia, KEY, CFG);
+                let desc = bytes.toString(CryptoJS.enc.Utf8);
 
-                // Intento 2: Desencriptar Capa 1
-                let bytes1 = CryptoJS.AES.decrypt(cleanData, KEY, CFG);
-                let text1 = bytes1.toString(CryptoJS.enc.Utf8);
-
-                if (text1 && text1.includes('http')) return text1;
-
-                // Intento 3: Desencriptar Capa 2 (Doble AES)
-                if (text1) {
-                    let bytes2 = CryptoJS.AES.decrypt(text1, KEY, CFG);
-                    let text2 = bytes2.toString(CryptoJS.enc.Utf8);
-                    if (text2 && text2.includes('http')) return text2;
+                // 3. Si el resultado tiene http, éxito total
+                if (desc && desc.includes('http')) {
+                    return desc;
+                } 
+                
+                // 4. Si el resultado parece ser OTRA capa encriptada (como N1g2...), reintentamos
+                if (desc && desc.length > 10 && desc !== str) {
+                    return recursivoAES(desc, intentos + 1);
                 }
 
-                // Intento 4: ¿Es solo Base64 simple?
-                let rawB64 = atob(cleanData);
-                if (rawB64.includes('http')) return rawB64;
+                // 5. Si falla AES, probar Base64 puro por si acaso
+                try {
+                    let b64 = atob(limpia);
+                    if (b64.includes('http')) return b64;
+                } catch(e) {}
 
             } catch (e) {
-                // Si todo falla, intentar devolver lo más limpio posible
-                return cleanData;
+                return str;
             }
-            return cleanData;
+            return str;
         }
 
-        async function procesarTodo() {
+        async function superProcesar() {
             const status = document.getElementById('status');
-            status.innerText = "Obteniendo pelis.json...";
+            status.innerText = "Descargando pelis.json de vimetrix...";
 
             try {
-                // Usamos el proxy para saltar CORS de vimetrix
-                const url = 'https://vimetrix.lat/panelpelis/pelis.json';
-                const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
-                const json = await res.json();
+                const res = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://vimetrix.lat/panelpelis/pelis.json'));
+                const data = await res.json();
+                
+                status.innerText = "Procesando capas recursivas...";
 
-                status.innerText = "Limpiando base de datos...";
-
-                const final = json.map(cat => ({
+                const final = data.map(cat => ({
                     ...cat,
-                    samples: cat.samples.map(peli => ({
-                        ...peli,
-                        url: superDecrypt(peli.url),
-                        icono: superDecrypt(peli.icono),
-                        iconoHorizontal: superDecrypt(peli.iconoHorizontal)
-                    }))
+                    samples: cat.samples.map(p => {
+                        console.log("Procesando: " + p.name);
+                        return {
+                            ...p,
+                            url: recursivoAES(p.url),
+                            icono: recursivoAES(p.icono),
+                            iconoHorizontal: recursivoAES(p.iconoHorizontal)
+                        };
+                    })
                 }));
 
+                status.innerText = "¡LIMPIEZA TOTAL! Descargando...";
+                
                 const blob = new Blob([JSON.stringify(final, null, 4)], { type: 'application/json' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'pelis_DESBLOQUEADAS_ALFREDO.json';
+                a.download = 'pelis_ALFREDO_funcional_REAL.json';
                 a.click();
                 
-                status.innerText = "¡TERMINADO! Archivo listo.";
-            } catch (e) {
-                status.innerText = "Error: No se pudo conectar al panel.";
+                status.style.color = "#00ff00";
+            } catch (err) {
+                status.innerText = "Error crítico. Revisa el proxy.";
+                status.style.color = "#ff0000";
             }
         }
     </script>
