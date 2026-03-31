@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Extractor de JSON Desencriptado - Stream TV Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #161616;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #ff0000;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255,0,0,0.2);
+        }
+        button {
+            background: #ff0000;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #cc0000;
+            transform: scale(1.05);
+        }
+        #status {
+            margin-top: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Extractor de Datos Pro</h1>
+        <p>Este script descargará el JSON de Vimetrix, lo desencriptará<br>y guardará una copia limpia en tu dispositivo.</p>
+        <br>
+        <button onclick="procesarYDescargar()">DESENCRIPTAR Y DESCARGAR JSON</button>
+        <p id="status">Esperando acción...</p>
+    </div>
+
+    <script>
+        // Configuración basada en tus archivos PHP
+        const JSON_URL = 'https://vimetrix.lat/paneltv/tv.json';
+        const PROXY = 'https://corsproxy.io/?' + encodeURIComponent(JSON_URL);
+        const KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
+        const CFG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
+
+        function decrypt(text) {
+            if (!text || typeof text !== 'string') return text;
+            try {
+                let current = text;
+                // Aplicamos la doble desencriptación que usa tu panel
+                for(let i = 0; i < 2; i++) {
+                    let bytes = CryptoJS.AES.decrypt(current, KEY, CFG);
+                    let decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                    if (decrypted) current = decrypted;
+                }
+                return current;
+            } catch (e) {
+                return text;
+            }
+        }
+
+        async function procesarYDescargar() {
+            const status = document.getElementById('status');
+            status.innerText = "Descargando archivo original...";
+
+            try {
+                const response = await fetch(PROXY);
+                const data = await response.json();
+
+                status.innerText = "Desencriptando datos...";
+
+                // Recorremos el JSON para limpiar cada campo
+                const jsonDesencriptado = data.map(grupo => ({
+                    ...grupo,
+                    samples: grupo.samples.map(canal => {
+                        const nuevoCanal = { ...canal };
+                        
+                        // Desencriptar URL
+                        if (nuevoCanal.url) nuevoCanal.url = decrypt(nuevoCanal.url);
+                        
+                        // Desencriptar Licencia DRM (ClearKey)
+                        if (nuevoCanal.drm_license_uri) {
+                            nuevoCanal.drm_license_uri = decrypt(nuevoCanal.drm_license_uri);
+                        }
+
+                        // Desencriptar Headers si existen
+                        if (nuevoCanal.headers) {
+                            const decHeaders = {};
+                            for (let h in nuevoCanal.headers) {
+                                decHeaders[h] = decrypt(nuevoCanal.headers[h]);
+                            }
+                            nuevoCanal.headers = decHeaders;
+                        }
+
+                        return nuevoCanal;
+                    })
+                }));
+
+                // Crear el archivo para descargar
+                status.innerText = "Generando archivo final...";
+                const blob = new Blob([JSON.stringify(jsonDesencriptado, null, 4)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'tv_desencriptado_ALFREDO.json';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                status.style.color = "#00ff00";
+                status.innerText = "¡Listo! El archivo se ha descargado.";
+
+            } catch (error) {
+                console.error(error);
+                status.style.color = "#ff0000";
+                status.innerText = "Error: No se pudo acceder o procesar el JSON.";
+            }
+        }
+    </script>
+</body>
+</html>
