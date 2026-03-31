@@ -2,94 +2,86 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Desencriptador de Películas Pro - ALFREDO</title>
+    <title>Pelis Extractor V2 - ALFREDO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #050505; color: #fff; text-align: center; padding: 50px; }
-        .container { background: #111; padding: 40px; border-radius: 12px; border: 1px solid #00ff00; display: inline-block; box-shadow: 0 0 20px rgba(0,255,0,0.1); }
-        h1 { color: #00ff00; margin-bottom: 10px; }
-        button { background: #00ff00; color: #000; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; border-radius: 6px; font-size: 16px; transition: 0.3s; }
-        button:hover { background: #00cc00; transform: scale(1.05); }
-        #status { margin-top: 25px; color: #888; font-family: monospace; }
+        body { font-family: sans-serif; background: #050505; color: #fff; text-align: center; padding: 50px; }
+        .container { background: #111; padding: 30px; border-radius: 10px; border: 1px solid #ff0000; display: inline-block; }
+        button { background: #ff0000; color: #fff; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        #status { margin-top: 20px; color: #aaa; font-family: monospace; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>PELIS EXTRACTOR PRO</h1>
-        <p>Desencripta el catálogo de Vimetrix con la llave maestra.</p>
-        <br>
-        <button onclick="descargarPelisLimpio()">DESENCRIPTAR Y DESCARGAR JSON</button>
-        <p id="status">Estado: Esperando acción...</p>
+        <h1>EXTRACTOR PELIS V2</h1>
+        <p>Corrección de desencriptación para links de películas.</p>
+        <button onclick="procesar()">DESENCRIPTAR Y GUARDAR</button>
+        <p id="status">Listo para procesar...</p>
     </div>
 
     <script>
-        const PELIS_URL = 'https://vimetrix.lat/panelpelis/pelis.json';
-        const PROXY = 'https://corsproxy.io/?' + encodeURIComponent(PELIS_URL);
-        const MASTER_KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
-        const CONFIG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
+        const KEY = CryptoJS.enc.Utf8.parse('e72of82ke0gu2o2k');
+        const CFG = { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 };
 
-        function doubleDecrypt(text) {
-            if (!text || typeof text !== 'string' || text.length < 20) return text;
+        // Función mejorada para limpiar el texto antes de desencriptar
+        function cleanDecrypt(cipherText) {
+            if (!cipherText || cipherText.length < 20) return cipherText;
+            
             try {
-                let decrypted = text;
+                let current = cipherText.trim();
+                
                 for(let i = 0; i < 2; i++) {
-                    let bytes = CryptoJS.AES.decrypt(decrypted, MASTER_KEY, CONFIG);
+                    // Intentamos desencriptar
+                    let bytes = CryptoJS.AES.decrypt(current, KEY, CFG);
                     let result = bytes.toString(CryptoJS.enc.Utf8);
-                    if (result) {
-                        decrypted = result;
-                    } else {
-                        return decrypted; // Si falla la segunda vuelta, devuelve la primera
+                    
+                    if (result && result.includes('http')) {
+                        current = result;
+                    } else if (result) {
+                        current = result;
                     }
                 }
-                return decrypted;
+                return current;
             } catch (e) {
-                return text;
+                return cipherText;
             }
         }
 
-        async function descargarPelisLimpio() {
+        async function procesar() {
             const status = document.getElementById('status');
-            status.innerText = "Conectando con el servidor de películas...";
-            status.style.color = "#888";
-
+            status.innerText = "Descargando pelis.json...";
+            
             try {
-                const response = await fetch(PROXY);
-                const data = await response.json();
+                const url = 'https://vimetrix.lat/panelpelis/pelis.json';
+                const res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
+                const data = await res.json();
                 
-                status.innerText = "Desencriptando enlaces de películas...";
+                status.innerText = "Procesando doble capa AES...";
 
-                const dataLimpia = data.map(categoria => ({
-                    ...categoria,
-                    samples: categoria.samples.map(peli => ({
+                const limpio = data.map(cat => ({
+                    ...cat,
+                    samples: cat.samples.map(peli => ({
                         ...peli,
-                        // Desencriptamos la URL de la película
-                        url: doubleDecrypt(peli.url),
-                        // Desencriptamos el icono si fuera necesario (en tu JSON parece limpio, pero por seguridad)
-                        icono: doubleDecrypt(peli.icono),
-                        iconoHorizontal: doubleDecrypt(peli.iconoHorizontal),
-                        iconpng: doubleDecrypt(peli.iconpng)
+                        url: cleanDecrypt(peli.url),
+                        // Desencriptamos también los iconos por si acaso
+                        icono: cleanDecrypt(peli.icono),
+                        iconoHorizontal: cleanDecrypt(peli.iconoHorizontal),
+                        iconpng: cleanDecrypt(peli.iconpng)
                     }))
                 }));
 
-                status.innerText = "Generando archivo final...";
-                
-                const blob = new Blob([JSON.stringify(dataLimpia, null, 4)], { type: 'application/json' });
-                const urlDescarga = URL.createObjectURL(blob);
+                const blob = new Blob([JSON.stringify(limpio, null, 4)], { type: 'application/json' });
                 const a = document.createElement('a');
-                a.href = urlDescarga;
-                a.download = 'pelis_alfredo_final.json';
-                document.body.appendChild(a);
+                a.href = URL.createObjectURL(blob);
+                a.download = 'pelis_REQUETE_LIMPIAS.json';
                 a.click();
-                document.body.removeChild(a);
-
+                
+                status.innerText = "¡Hecho! Archivo descargado.";
                 status.style.color = "#00ff00";
-                status.innerText = "¡ÉXITO! El archivo 'pelis_alfredo_final.json' ha sido descargado.";
-
-            } catch (error) {
-                console.error(error);
+            } catch (e) {
+                status.innerText = "Error en la descarga o proceso.";
                 status.style.color = "#ff0000";
-                status.innerText = "Error: No se pudo acceder al archivo original.";
             }
         }
     </script>
